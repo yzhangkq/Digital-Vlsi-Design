@@ -473,7 +473,7 @@ END my_site
 
 ------
 
-## Liberty Timing Models (.lib)
+## Liberty Timing Models (.lib)【在库单元文件中】
 
 **Liberty Timing Models**（.lib 文件）是用于描述标准单元库电气特性和时序的信息文件。它们在逻辑综合、时序分析和物理设计中起着至关重要的作用。以下是关于 .lib 文件的一些关键点：
 
@@ -525,3 +525,151 @@ library (example_lib) {
 ### 总结
 
 Liberty Timing Models (.lib 文件) 是 VLSI 后端设计中不可或缺的部分，它们提供了关于标准单元的时序、功耗和电气特性的信息，帮助设计师和工具在逻辑综合和时序分析等过程中做出决策。
+
+------
+
+
+
+## Boolean minimization
+
+接下来是讲解综合后半段的东西。
+
+![image-20241004145730061](https://gitee.com/yzhangkq/images/raw/master/202410041458310.png)
+
+### Elaboration and Binding
+
+![image-20241004150603341](https://gitee.com/yzhangkq/images/raw/master/202410041506831.png)
+
+- #### 1. Elaboration（详细化）
+
+  - **定义**：Elaboration 是将高层次的设计描述（如 RTL 代码）转换为更详细的设计表示形式的过程。这一过程涉及解析设计中的模块、信号和层次结构。
+  - **主要任务**：
+    - 生成逻辑网表：将设计描述转换为逻辑网表，以便后续的物理实现。
+    - 分析设计约束：识别和整合设计约束，包括时序、功耗和面积限制。
+    - 识别标准单元：确定需要使用的标准单元库，以满足设计需求。
+
+  #### 2. Binding（绑定）
+
+  - **定义**：Binding 是将具体的物理实现与逻辑设计进行关联的过程。这一步骤通常涉及选择和分配具体的标准单元、布线和布局。
+  - **主要任务**：
+    - 选择标准单元：将逻辑网表中的逻辑功能与实际的标准单元进行匹配。
+    - 确定布局：决定单元在芯片上的具体位置和布局，以优化性能和功耗。
+    - 生成物理视图：创建物理设计的视图，包括布线和布局信息，准备进行后续的验证和制造。
+
+  #### 总结
+
+  - **Elaboration** 主要关注从逻辑设计到更详细表示的转换，而 **Binding** 则专注于将这些详细表示与具体的物理实现相结合。这两个步骤对于确保设计的准确性和可制造性至关重要。
+
+
+
+### Multi-level Logic Minimization
+
+在elaboration的过程中，一个很重要的部分是要minimize所产生的布尔逻辑，而这个过程就是教multi-level logic minimization。**Multi-level Logic Minimization** 允许更复杂的结构和中间变量，能够更好地优化电路规模和性能，适合更复杂的逻辑设计。
+
+**评判这个minimization的标准就是看literals的个数，就是literals越小越好，literals的意思就是output最后含有各个variable的数目。**
+
+
+
+### BDD and Reduced Order BDD(ROBDD)
+
+**BDD（Binary Decision Diagram）** 和 **ROBDD（Reduced Ordered Binary Decision Diagram）** 是用于表示布尔函数的图形数据结构，它们在逻辑设计、验证和优化中被广泛使用。以下是对它们的详细介绍：
+
+### 1. BDD（Binary Decision Diagram）
+
+- **定义**：BDD 是一种有向无环图（DAG），用于表示布尔函数。每个节点表示一个变量，每条边表示变量的取值（通常是 0 或 1）。
+- **特点**：
+  - **层次结构**：自上而下的结构，顶层节点表示函数的输入，底层节点表示输出。
+  - **直观性**：可以直观地表示复杂的布尔函数，便于理解其逻辑结构。
+- **优点**：
+  - 适合处理小规模布尔函数。
+  - 可以有效地进行逻辑运算（如合并、交集等）。
+
+### 2. ROBDD（Reduced Ordered Binary Decision Diagram）
+
+- **定义**：ROBDD 是对 BDD 的一种优化形式，具有最小化的性质。它通过消除冗余节点和合并等效子图来简化 BDD。
+- **特点**：
+  - **有序性**：节点按照变量的特定顺序排列，确保每个变量在图中只出现一次。
+  - **简化性**：通过减少节点数量和合并相同的子图，使得表示更加紧凑。
+- **优点**：
+  - 提供唯一的表示：对于同一布尔函数，ROBDD 提供唯一的图形表示（在给定变量顺序的情况下）。
+  - 更高的效率：在许多应用中，ROBDD 的操作（如查找、合并等）比 BDD 更高效。
+
+### 总结
+
+- **BDD** 是一种基本的布尔函数表示方法，适合小规模函数和直观理解。
+- **ROBDD** 则是经过优化的版本，适合处理更复杂的布尔函数，提供更高效的存储和操作性能。
+
+------
+
+
+
+## Constraint Definition
+
+- Following Elaboration, the design is loaded into the synthesis tool and stored inside a data structure. 
+- Hierarchical ports (inputs/outputs) and registers can be accessed by name.
+  - `set in_ports [get_ports IN*]` 
+  - `set regs [get_cells –hier *_reg]`
+- At this point, we can load the design constraints in SDC format.
+  - `read_sdc –verbose sdc/constraints.sdc`
+  -  For example, to create a clock and define the target frequency:
+    - `create_clock –period $PERIOD –name $CLK_NAME [get_ports $CLK_PORT]`
+- Carefully check that all constraints were accepted by the tool!
+
+------
+
+
+
+### Technology Mapping
+
+1. **逻辑综合后阶段**：Technology mapping 是逻辑综合之后的一个步骤，目的是将布尔网络转换为可制造的电路。
+2. **标准单元库**：使用特定工艺技术提供的标准单元库，该库包含各种逻辑门和触发器，具有不同的性能和面积特性。
+3. **优化目标**：
+   - **面积**：减少芯片面积。
+   - **延迟**：优化电路速度。
+   - **功耗**：降低功耗。
+4. **挑战**：需要在多个目标之间进行权衡，以满足设计的性能、功耗和面积要求。
+
+Technology mapping 是实现高效芯片设计的重要步骤，它将抽象的逻辑设计转化为可以在硅上制造的具体实现。
+
+
+
+### Recursive Tree-Covering Algorithm
+
+在技术映射中，**递归树覆盖算法**（Recursive Tree-Covering Algorithm）是一种用于将逻辑网络映射到标准单元库的算法。以下是其主要特点：
+
+1. **目标**：优化逻辑电路的面积、延迟和功耗，通过高效地将逻辑树结构映射到库中的单元。
+
+2. **步骤**：
+   - **树分解**：将电路分解为若干逻辑树。
+   - **模式匹配**：在每棵逻辑树上递归应用库中的单元模式。
+   - **选择最佳覆盖**：根据优化目标（如面积或延迟）选择最合适的单元。
+
+3. **优点**：
+   - **高效性**：通过递归分解和匹配，提高算法的效率。
+   - **灵活性**：可以适应不同的优化目标和设计约束。
+
+4. **应用**：广泛应用于EDA工具中的逻辑综合和技术映射阶段。
+
+该算法有效地将复杂的逻辑网络转换为具体的、可制造的电路实现。
+
+
+
+#### How
+
+下面就是算法的一个详细过程，主要就是递归搜索。
+
+![image-20241004152748005](https://gitee.com/yzhangkq/images/raw/master/202410041527079.png)
+
+------
+
+
+
+### Verilog for Synthesis - revisited
+
+- #### Datapath Synthesis
+
+- #### Clock Gating
+
+- #### Data Gating
+
+- #### Design and Verification – HDL Linting
