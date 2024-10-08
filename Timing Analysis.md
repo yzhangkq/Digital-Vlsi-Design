@@ -173,7 +173,7 @@ SDC语法是TCL的子集。
   - Called a module in Stylus Common UI. 
 - Port: The input, output or inout port of a Design. 
 - Pin: The input, output or inout pin of a Cell in the Design. 
-- Net: The wire that connects Ports to Pins and/or Pins to each other. 
+- **Net: The wire that connects Ports to Pins and/or Pins to each other.**
 - Clock: Port of a Design or Pin of a Cell explicitly defined as a clock source. 
   - Called a clock_tree in Stylus Common UI.
 
